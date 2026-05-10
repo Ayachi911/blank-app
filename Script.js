@@ -1,52 +1,88 @@
-document.addEventListener(‘DOMContentLoaded’, function() {
+/* =============================================
+   AYACHI SAMYAL — Portfolio JS
+   ============================================= */
 
-```
-// ROTATING HERO TEXT
-const rotatingSpans = document.querySelectorAll('.rotating-text span');
-let currentIndex = 0;
+document.addEventListener('DOMContentLoaded', function () {
 
-function rotateText() {
-    rotatingSpans[currentIndex].classList.remove('active');
-    currentIndex = (currentIndex + 1) % rotatingSpans.length;
-    rotatingSpans[currentIndex].classList.add('active');
-}
+  /* ---- TAB SWITCHING ---- */
+  const allTabs     = document.querySelectorAll('.nav-tab, .mobile-tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+  const mobileMenu  = document.getElementById('mobileMenu');
 
-setInterval(rotateText, 4000);
-
-// SMOOTH SCROLL
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+  function switchTab(name) {
+    const target = document.getElementById('tab-' + name);
+    if (!target) return;
+    allTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    tabContents.forEach(c => {
+      c.classList.remove('active');
     });
-});
+    // Small delay lets the fadeUp animation retrigger
+    requestAnimationFrame(() => target.classList.add('active'));
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    if (mobileMenu) mobileMenu.classList.remove('open');
+  }
 
-// INTERSECTION OBSERVER FOR FADE-IN
-const observerOptions = {
-    root: null,
-    rootMargin: '0px',
-    threshold: 0.1
-};
+  allTabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
+  const logoBtn = document.querySelector('.nav-logo');
+  if (logoBtn) logoBtn.addEventListener('click', () => switchTab('home'));
+
+  const mobileToggle = document.getElementById('mobileToggle');
+  if (mobileToggle && mobileMenu) {
+    mobileToggle.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+  }
+
+  /* ---- DATA-NAVIGATE LINKS ---- */
+  document.querySelectorAll('[data-navigate]').forEach(el =>
+    el.addEventListener('click', () => switchTab(el.dataset.navigate))
+  );
+
+  /* ---- EXPANDABLE SECTIONS ---- */
+  document.querySelectorAll('.expandable-trigger').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const content = document.getElementById(btn.dataset.target);
+      if (!content) return;
+      content.classList.toggle('active');
+      btn.textContent = content.classList.contains('active')
+        ? 'Hide Events ↑'
+        : 'View Events & Reports ↓';
     });
-}, observerOptions);
+  });
 
-// Observe all project sections
-document.querySelectorAll('.project-section').forEach(section => {
-    section.style.opacity = '0';
-    section.style.transform = 'translateY(20px)';
-    section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-    observer.observe(section);
-});
-```
+  /* ---- RIPPLE EFFECT ---- */
+  document.querySelectorAll('.clickable').forEach(el => {
+    el.addEventListener('click', function (e) {
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const r    = document.createElement('span');
+      r.className  = 'ripple';
+      r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - rect.left - size / 2}px;top:${e.clientY - rect.top - size / 2}px`;
+      this.querySelector('.ripple')?.remove();
+      this.appendChild(r);
+      setTimeout(() => r.remove(), 700);
+    });
+  });
+
+  /* ---- KEYBOARD SHORTCUTS (1–6) ---- */
+  const tabs = ['home', 'por', 'international', 'arts', 'technical', 'competitions'];
+  document.addEventListener('keydown', e => {
+    const i = parseInt(e.key) - 1;
+    if (i >= 0 && i < tabs.length) switchTab(tabs[i]);
+  });
+
+  /* ---- HERO ENTRANCE ANIMATION ---- */
+  const heroText = document.querySelector('.hero-text-panel');
+  if (heroText) {
+    const kids = heroText.children;
+    Array.from(kids).forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(16px)';
+      el.style.transition = `opacity 0.6s ease ${i * 0.1 + 0.15}s, transform 0.6s ease ${i * 0.1 + 0.15}s`;
+      requestAnimationFrame(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      });
+    });
+  }
 
 });
